@@ -30,7 +30,7 @@ struct IdLess {					//internal function.
     }
     float const* values;
 };
-void GetSmallest(const VectorXf& r,int& h,const MatrixXf& x,MatrixXf& xSub,VectorXi& RIndex){
+void GetSmallest(const VectorXf& r,int h,const MatrixXf& x,MatrixXf& xSub,VectorXi& RIndex){
 	const int n=x.rows();
 	VectorXi SIndx2(n);
 	SIndx2.setLinSpaced(n,0,n-1);
@@ -59,18 +59,21 @@ VectorXf FindLine(const MatrixXf& xSub,const int& h){
 	return(A.lu().solve(bt));
 }
 VectorXf OneProj(const MatrixXf& x,const MatrixXf& xSub,const int& h,const VectorXi& RIndex,const int h_m){
-	VectorXf beta=FindLine(xSub,h);
-	VectorXf praj=((x*beta).array()-1.0).array().abs2();
-	praj/=beta.squaredNorm();
+	const int p=x.cols(),n=x.rows();
+	VectorXf beta(p);
+	VectorXf praj(n);
 	VectorXf prej(h);
+	beta=FindLine(xSub,h);
+	praj=((x*beta).array()-1.0f).array().abs2();
+	praj/=beta.squaredNorm();
 	for(int i=0;i<h;i++)	prej(i)=praj(RIndex(i));
-	float prem=prej.head(h).mean(),tol=1e-7;
+	float prem=prej.head(h).mean(),tol=1e-8;
 	if(prem<tol){	
 		const int n=praj.size();
 		VectorXf d_resd=VectorXf::Zero(n);
-		d_resd=(praj.array()<tol).select(1.0,d_resd);
+		d_resd=(praj.array()<tol).select(1.0f,d_resd);
 		if((d_resd.sum())>=h_m){
-			prem=1.0;
+			prem=1.0f;
 		} else {
 			float maxin=praj.maxCoeff();
 			d_resd=(praj.array()<tol).select(maxin,praj);
@@ -81,36 +84,37 @@ VectorXf OneProj(const MatrixXf& x,const MatrixXf& xSub,const int& h,const Vecto
 }
 float SubsetRankFun(const MatrixXf& x,const MatrixXf& xSub,const int& h,const VectorXi& RIndex){
 	VectorXf beta=FindLine(xSub,h);
-	VectorXf praj=((x*beta).array()-1.0).array().abs2();
+	VectorXf praj=((x*beta).array()-1.0f).array().abs2();
 	praj/=beta.squaredNorm();
 	VectorXf proj=praj;
 	VectorXf prej(h);
+	float fin=1.0f,prem;
 	nth_element(proj.data(),proj.data()+h,proj.data()+proj.size());	
 	for(int i=0;i<h;i++)	prej(i)=praj(RIndex(i));
-	float prem=proj.head(h).mean();
-	float fin=(prem>1e-7)?(prej.head(h).mean()/prem):(1.0);
+	prem=proj.head(h).mean();
+	if(prem>1e-8)	fin=prej.head(h).mean()/prem;
 	return fin;
 }
 float Main(MatrixXf& x,const int& k0,const int& J,const int& k1,const int& K,VectorXf& dP,const int& h_m,VectorXi& samset){
-	const int p=x.cols(),n=x.rows(),ni=samset.size();
-	int h=K+1,i=0;
+	int p=x.cols(),n=x.rows(),ni=samset.size();
+	int h=K+1,i=0,j=0,q=0,ht=0;
 
 	RowVectorXf xSub_mean(p);
 	MatrixXf xSub(h_m,p);
+	MatrixXf wSub(h_m,K);
+	MatrixXf w(n,K); 
 	VectorXi RIndex(h_m);
 	VectorXf fin(k1);
 	VectorXi hl;
 	hl.setLinSpaced(J+1,h,h_m);
 	RIndex.head(h)=SampleR(ni,h);
-	for(i=0;i<h;i++) xSub.row(i)=x.row(samset(RIndex(i)));
+	for(i=0;i<h;i++) RIndex(i)=samset(RIndex(i));	
+	for(i=0;i<h;i++) xSub.row(i)=x.row(RIndex(i));	
 	xSub_mean=xSub.topRows(h).colwise().mean();	
 	x.rowwise()-=xSub_mean;					
 	xSub.rowwise()-=xSub_mean;
 	JacobiSVD<MatrixXf> svd(xSub.topRows(h),ComputeThinV);
-	int K0=(svd.nonzeroSingularValues()<K)?svd.nonzeroSingularValues():K;	
-	MatrixXf wSub(h_m,K0);
-	MatrixXf w(n,K0); 
-	w=(x*svd.matrixV().topLeftCorner(p,K0));
+	w=(x*svd.matrixV().topLeftCorner(p,K));
 	for(i=0;i<h;i++) wSub.row(i)=w.row(RIndex(i));	
 	hl.setLinSpaced(J+1,h,h_m);
 	h=hl(0);	
@@ -125,7 +129,7 @@ float Main(MatrixXf& x,const int& k0,const int& J,const int& k1,const int& K,Vec
 }
 extern "C"{
 	void FastHCS(int* n,int* p,int* k0,float* xi,int* k1,float* DpC,int* k2,int* nsmp,int* J,float* objfunC,int* seed,int* ck,int* ni){
-		const int ik0=*k0,iJ=*J,ik1=*k1,ih_m=(*n+*k2+1)/2-1,ik2=*k2;
+		const int ik0=*k0,iJ=*J,ik1=*k1,ik2=*k2,ih_m=(*n+*k2+1)/2+1,iseed=*seed+1;
 		float objfunA,objfunB=*objfunC;
 		srand(*seed);
 

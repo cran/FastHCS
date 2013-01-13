@@ -21,7 +21,6 @@ FastHCS<-function(x,nsamp=NULL,alpha=0.5,k=10,seed=NULL){#x<-x0;nsamp<-100;alpha
 	vd<-svd(x1/sqrt(nrow(x)-1),nu=0)
 	x2<-x1%*%Signflip(vd$v)
 	n<-nrow(x2)
-	if(nrow(unique(x2))<n)	stop("Your dataset contains duplicated rows. Please remove them.") 
 	p<-ncol(x2)
 	if(k>=p)		stop("k should satisfy k<p.")
 	if(p<2|k<2)		stop("Univariate FastHCS is not implemented.")
