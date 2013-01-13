@@ -13,7 +13,7 @@
           \code{"alpha"} with probability 0.99.}
  \item{alpha}{Numeric parameter controlling the size of the active subsets i.e., \code{"h=quanf(alpha,n,q)"}. Allowed
           values are between 0.5 and 1 and the default is 0.5.}
-\item{q}{Number of principal components to compute. Note that p>q>1, 1<q<n/2. Default is q=10.}
+\item{q}{Number of principal components to compute. Note that p>q>1, 1<q<n. Default is q=10.}
 \item{seed}{Starting value for random generator. Default is seed = 1.}
 }
 \value{
@@ -21,16 +21,16 @@
 		\item{rawBest:}{The indexes of the h members of H*, the raw FastHCS optimal subset.}
 	 	\item{obj:}{The FastHCS objective function corresponding to H*, the selected subset of h observations.}
 	 	\item{rawDist:}{Outlyingness index of the data on the raw q-dimensonal subset that initialized H*.}
-		\item{best:}{the indexes of the members of the H+, the FastHSC subset after the efficiency step has performed C-steps and a reweighting.} 
+		\item{best:}{the indexes of the members of the H+, the FastHSC subset after the C-steps.} 
 		\item{center:}{the p-vector of column means of the observations with indexes in \code{best}.}
 		\item{loadings:}{the (rank q) loadings matrix of the observations with indexes in \code{best}.}
-		\item{eigenvalues:}{the eigenvalues of the observations with indexes in \code{best}.}
+		\item{eigenvalues:}{the first \code{q)} eigenvalues of the observations with indexes in \code{best}.}
 		\item{od:}{the orthogonal distances of the centered data wrt to the subspace spanned 
 		by the \code{loadings} matrix.}
 		\item{sd:}{the score distances of the data projected on the subspace spanned by the \code{loadings} matrix with respect to the estimated \code{center}.}	 
 		\item{cutoff.od:}{the cutoff for the vector of orthogonal distances.}
 		\item{cutoff.sd:}{the cutoff for the vector of score distances.}
-		\item{scores}{the value of the projected on the space of the principal components data (the centred  data multiplied by the loadings matrix) is returned. Hence, cov(scores) is the diagonal matrix diag(eigenvalues).}
+		\item{scores}{The value of the projected on the space of the principal components data (the centred  data multiplied by the loadings matrix) is returned. Hence, cov(scores) is the diagonal matrix diag(eigenvalues).}
 }
 \description{
    Computes a robust PCA model with q components for 
@@ -92,7 +92,7 @@ r1<-FastHCS(x=x1,nSamp=nStart,q=Q,seed=0)
 max(abs(log(r1$eigenvalues[1:Q]/r0$eigenvalues[1:Q])))
 }
 \references{
-	 Schmitt E. and Vakili K. and (2014).
+	 Schmitt E. and Vakili K. and (2015).
 	 Robust PCA with FastHCS.
 	(http://arxiv.org/abs/1402.3514)
 }

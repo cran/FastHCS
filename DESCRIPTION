@@ -1,9 +1,9 @@
 Package: FastHCS
 Type: Package
-Title: FastHCS Robust Algortihm for Principal Component Analysis
-Version: 0.0.4
+Title: Robust Algorithm for Principal Component Analysis
+Version: 0.0.5
 Date: 2013-01-13
-Depends: R (>= 3.1.1), matrixStats, rrcov
+Depends: R (>= 3.1.1), matrixStats, robustbase
 Suggests: mvtnorm
 LinkingTo: Rcpp, RcppEigen
 SystemRequirements: C++11
@@ -14,6 +14,6 @@ Authors@R: person("Kaveh", "Vakili", email =  "vakili.kaveh.email@gmail.com", ro
 Author: Kaveh Vakili [aut, cre]
 Maintainer: Kaveh Vakili <vakili.kaveh.email@gmail.com>
 NeedsCompilation: yes
-Packaged: 2015-01-07 17:01:13 UTC; kaveh
+Packaged: 2015-05-18 19:08:13 UTC; kaveh
 Repository: CRAN
-Date/Publication: 2015-01-08 12:47:42
+Date/Publication: 2015-05-19 08:45:07

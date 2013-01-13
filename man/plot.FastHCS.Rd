@@ -40,15 +40,18 @@ and the score distances along the horizontal axis, with the dotted
   \code{\link{FastHCS}}
 }
 \examples{
-data(Ionosphere)
+data(Tablets)
 alpha<-0.5
-Q<-10
-p<-ncol(Ionosphere[,-1])
+Q<-15
+p<-ncol(Tablets[,-1])
 ns<-FHCSnumStarts(q=Q,eps=(1-alpha)*4/5)
-Fit<-FastHCS(x=Ionosphere[,-1],q=Q,nSamp=ns,seed=0)
-colvec<-rep("orange",nrow(Ionosphere))
-colvec[Ionosphere[,1]==1]<-"blue"
-plot(Fit,col=colvec,pch=16)
+RunExample<-FALSE
+if(RunExample){
+	Fit<-FastHCS(x=Tablets[,-1],q=Q,nSamp=ns,seed=1,alpha=0.5)
+	colvec<-rep("orange",nrow(Tablets))
+	colvec[Tablets[,1]==1]<-"blue"
+	plot(Fit,col=colvec,pch=16)
+}
 }
 \keyword{plot}
 \keyword{robust}
