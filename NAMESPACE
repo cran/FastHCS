@@ -1,0 +1,7 @@
+useDynLib(FastHCS)
+import("matrixStats")
+export("NumStarts")
+export("computdis")
+export("Signflip")
+export("FastHCS")
+
