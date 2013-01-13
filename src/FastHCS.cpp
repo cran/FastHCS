@@ -73,9 +73,9 @@ VectorXf OneProj(const MatrixXf& x,const MatrixXf& xSub,const int& h,const Vecto
 	VectorXf praj(n);
 	praj=((x*beta).array()-1.0f).array().abs2();
 	praj/=beta.squaredNorm();
-	VectorXf prej(h);
-	for(int i=0;i<h;i++)	prej(i)=praj(RIndex(i));
-	float prem=prej.head(h).mean(),tol=1e-8;
+	float prem=0.0f,tol=1e-8;
+	for(int i=0;i<h;i++)	prem+=praj(RIndex(i));
+	prem=prem/(float)h;
 	if(prem<tol){	
 		const int n=praj.size();
 		VectorXf d_resd=VectorXf::Zero(n);
@@ -106,7 +106,7 @@ float SubsetRankFun(const MatrixXf& x,const MatrixXf& xSub,const int& h,const Ve
 	if(prem>1e-8)	fin=prej.head(h).mean()/prem;
 	return fin;
 }
-float Main(MatrixXf& x,const int& k0,const int& J,const int& k1,const int& K,VectorXf& dP,const int& h_m,VectorXi& samset){
+float Main(MatrixXf& x,const int& k0,const int& J,const int& k1,const int& K,VectorXf& dP,const int& h_m,VectorXi& samset,const VectorXi& hl){
 	int p=x.cols(),n=x.rows(),ni=samset.size();
 	int h=K+1,i=0;
 	VectorXi RIndex(h_m);
@@ -122,18 +122,14 @@ float Main(MatrixXf& x,const int& k0,const int& J,const int& k1,const int& K,Vec
 	MatrixXf w(n,K); 
 	w=(x*svd.matrixV().topLeftCorner(p,K));
 	MatrixXf wSub(h_m,K);
-	for(i=0;i<h;i++) wSub.row(i)=w.row(RIndex(i));	
-	VectorXi hl;
-	hl.setLinSpaced(J+1,h,h_m);
-	h=hl(0);	
+	for(i=0;i<h;i++) wSub.row(i)=w.row(RIndex(i));		
 	for(int j=0;j<J;j++){			//growing step
 		dP=VectorXf::Zero(n);
-		for(int i=0;i<k0;i++) dP+=OneProj(w,wSub,h,RIndex,h_m);
-		h=hl(j+1);
-		GetSmallest(dP,h,w,wSub,RIndex);
+		for(int i=0;i<k0;i++) dP+=OneProj(w,wSub,hl(j),RIndex,h_m);
+		GetSmallest(dP,hl(j+1),w,wSub,RIndex);
 	}
 	VectorXf fin(k1);
-	for(int i=0;i<k1;i++) fin(i)=SubsetRankFun(w,wSub,h,RIndex);
+	for(int i=0;i<k1;i++) fin(i)=SubsetRankFun(w,wSub,hl(J),RIndex);
 	return fin.array().log().mean();
 }
 void CStep(VectorXi& RIdx,MatrixXf& x,const int K,const int m){
@@ -182,31 +178,31 @@ void CStep(VectorXi& RIdx,MatrixXf& x,const int K,const int m){
 	}
 	if(w3)	RIdx=dIn.head(h);
 } 
-int compudist(MatrixXf& x,const int h_m,const int K,VectorXf& v_od,VectorXi& RIndex){
+int compudist(MatrixXf& x,const int h_m,const int K,VectorXf& v_od,VectorXi& RIndex,const int h_f){
 	const int p=x.cols(),n=x.rows();
-	MatrixXf xSb(h_m,p);
+	MatrixXf xSb(h_f,p);
 	GetSmallest(v_od,h_m,x,xSb,RIndex);
 	RowVectorXf xSb_mean(p);
-	xSb_mean=xSb.colwise().mean();
+	xSb_mean=xSb.topRows(h_m).colwise().mean();
 	x.rowwise()-=xSb_mean;					
-	xSb.rowwise()-=xSb_mean;
-	JacobiSVD<MatrixXf> svd(xSb,ComputeThinV);
+	xSb.topRows(h_m).rowwise()-=xSb_mean;
+	JacobiSVD<MatrixXf> svd(xSb.topRows(h_m),ComputeThinV);
 	int j=svd.nonzeroSingularValues()-1;
 	const int Q=min(K,j);
 	MatrixXf wOut(n,Q);
 	wOut=(x*svd.matrixV().topLeftCorner(p,Q));
 	v_od=((x-wOut*svd.matrixV().topLeftCorner(p,Q).adjoint()).cwiseAbs2().rowwise().sum()).array().sqrt(); 
+	GetSmallest(v_od,h_f,x,xSb,RIndex);
 	return(Q);
 }
 float cut_off_od(Ref<VectorXf> v_sd,const int n){
 	const int h_m=v_sd.size();
-	float temp0=v_sd.sum();
-	temp0/=(float)h_m;		//mean
+	float temp0=v_sd.mean();
 	v_sd.array()-=temp0;
 	float temp1=v_sd.array().abs2().sum();
 	temp1/=(float)(h_m-1);
 	temp1=sqrt(temp1);		//sd
-	float temp2=(float)sqrt(qchisq((h_m/(double)(n+(h_m==n))),1.0,1,0));
+	float temp2=(float)sqrt(qchisq((h_m/(double)n),1.0,1,0));
 	temp1/=temp2;			//srob
 	temp2=(float)qnorm(0.975,(double)temp0,(double)temp1,1,0);
 	return(pow(temp2,3.0f/2.0f));	//cut_off
@@ -259,14 +255,21 @@ int checkout(MatrixXf& x,VectorXi& VIdx,VectorXf& v_od,VectorXf& v_sd,const int 
 	xSb_mean.head(K).array()*=temp1;
 	for(int i=0;i<K;i++)  w.col(i).array()/=xSb_mean(i);
 	v_sd=(w.cwiseAbs2().rowwise().sum()).array().sqrt(); 
-	float temp2=(float)sqrt(qchisq(0.975,(double)K,1,0)/qchisq(h_m/(double)(n+(h_m==n)),(double)K,1,0));
+	float temp2=(float)sqrt(qchisq(0.975,(double)K,1,0)/qchisq(h_m/(double)n,(double)K,1,0));
+	VectorXi icK(n);
+	icK=VIdx;
 	VIdx.setLinSpaced(n,0,n-1);
 	std::nth_element(VIdx.data(),VIdx.data()+h_m-1,VIdx.data()+VIdx.size(),IdLess(v_sd.data()));
 	temp2*=v_sd(VIdx(h_m-1));	
 	int j=0;
 	for(int i=0;i<n;i++){
-		if(v_od(i)<=temp0 && v_sd(i)<=temp2) VIdx(j++)=i+1;
+		if(v_od(i)<=temp0 && v_sd(i)<=temp2) VIdx(j++)=i;
 	}
+	if(j<h_m){
+		j=h_m;
+		VIdx.head(j)=icK.head(j);
+	}
+	VIdx.head(j).array()+=1;
 	cutoffs<<temp0,temp2;
 	return(j);
 }
@@ -290,17 +293,22 @@ extern "C"{
 			float* rsd,	//17
 			float* rc,	//18
 			int* rh,	//19
-			float* pco	//20
+			float* pco,	//20
+			int* hf		//21
 		){
-		const int n=*rn,ni=*rni,ik0=*k0,iJ=*J,ik1=*k1,K=*k2,ih_m=*rh;
+		const int n=*rn,ni=*rni,ik0=*k0,iJ=*J,ik1=*k1,K=*k2,ih_m=*rh,ih_f=*hf;
 		float objfunA,objfunB=*objfunC;
 		mt.seed(*seed);
 		MatrixXf x=Map<MatrixXf>(xi,n,*p);
 		VectorXi icK=Map<VectorXi>(ck,ni);	
 		VectorXf DpA=VectorXf::Zero(n);
 		VectorXf DpB=VectorXf::Zero(n);
+		VectorXi hl(*J+1);
+		hl.setLinSpaced(*J+1,K+1,ih_m);
+		hl(*J)=ih_m;
+
 		for(int i=0;i<*nsmp;i++){			//for i=0 to i<#p-subsets.
-			objfunA=Main(x,ik0,iJ,ik1,K,DpA,ih_m,icK);
+			objfunA=Main(x,ik0,iJ,ik1,K,DpA,ih_m,icK,hl);
 			if(objfunA<objfunB){
 				objfunB=objfunA;
 				DpB=DpA;
@@ -309,17 +317,16 @@ extern "C"{
 		*objfunC=objfunB;
 		VectorXi RIdx(n);
 		VectorXf coff(2);
-		Map<VectorXf>(pco,n)=DpB;		
-		int Q=compudist(x,ih_m,K,DpB,RIdx);	//changes dPB,x. 
-		Map<VectorXi>(rraw,ih_m)=RIdx.head(ih_m);
-		CStepPrep(x,DpB,RIdx,Q,ih_m);		//uses dPB
-		int S=checkout(x,RIdx,DpA,DpB,ih_m,coff,Q);
-		Map<VectorXi>(rrew,S)=RIdx.head(S);
+		Map<VectorXf>(pco,n)=DpB;
+		int Q=compudist(x,ih_m,K,DpB,RIdx,ih_f);	//changes dPB,x. 
+		Map<VectorXi>(rraw,ih_m)=RIdx.head(ih_m).array()+1;
+		CStepPrep(x,DpB,RIdx,Q,ih_f);		//uses dPB
+		int S=checkout(x,RIdx,DpA,DpB,ih_f,coff,Q);
 		Map<VectorXf>(rod,n)=DpA;
-		Map<VectorXf>(rsd,n)=DpB;
 		Map<VectorXf>(rc,2)=coff;
+		Map<VectorXi>(rrew,n)=RIdx;
+		Map<VectorXf>(rsd,n)=DpB;
 		*k2=Q;
 		*rS=S;
-		
 	}
 }

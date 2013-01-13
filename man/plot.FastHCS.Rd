@@ -44,7 +44,7 @@ data(Ionosphere)
 alpha<-0.5
 Q<-10
 p<-ncol(Ionosphere[,-1])
-ns<-numStarts(q=Q,eps=(1-alpha)*4/5)
+ns<-FHCSnumStarts(q=Q,eps=(1-alpha)*4/5)
 Fit<-FastHCS(x=Ionosphere[,-1],q=Q,nSamp=ns,seed=0)
 colvec<-rep("orange",nrow(Ionosphere))
 colvec[Ionosphere[,1]==1]<-"blue"

@@ -1,6 +1,7 @@
 useDynLib(FastHCS)
 import("matrixStats")
-export("numStarts")
+import("rrcov")
+export("FHCSnumStarts")
 export("signFlip")
 export("FastHCS")
 export("plot.FastHCS")

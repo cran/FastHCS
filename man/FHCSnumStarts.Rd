@@ -1,8 +1,8 @@
-\name{numStarts}
-\alias{numStarts}
+\name{FHCSnumStarts}
+\alias{FHCSnumStarts}
 \title{Computes the number of starting q-subsets}
 \usage{
-  numStarts(q,gamma=0.99,eps=0.5)
+  FHCSnumStarts(q,gamma=0.99,eps=0.5)
 }
 \arguments{
   \item{q}{Number of desired components for the PCA model.}
@@ -22,7 +22,7 @@
   by the user.
 }
 \examples{
-numStarts(q=3,gamma=0.99,eps=0.4)
+FHCSnumStarts(q=3,gamma=0.99,eps=0.4)
 }
 \author{
 Kaveh Vakili

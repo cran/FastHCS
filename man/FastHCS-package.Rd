@@ -25,7 +25,7 @@ DnaAlteration		Cytosine methylation beta values for a sample of 198
 Ionosphere		Johns Hopkins University Ionosphere database.
 MultipleFeatures         Fourier coefficients describing the shape of many hand written
 			 replications of the numerals '0' and '1'.
-numStarts                 Internal function used to compute number of starting subsets for the FastHCS algorithm.
+FHCSnumStarts                 Internal function used to compute number of starting subsets for the FastHCS algorithm.
 plot.FastHCS		PCA diagnostic plot for object of class FastHCS.
 quanf                 Internal function used to compute the size of the h-subsets used in FastHCS based on the input parameter alpha.
 signFlip                 Performs the sign flip operation on a matrix of loadings.

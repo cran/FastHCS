@@ -1,4 +1,4 @@
-numStarts<-function(q,gamma=0.99,eps=0.5){
+FHCSnumStarts<-function(q,gamma=0.99,eps=0.5){
 	if(q>25)	stop("q too large.")
 	if(gamma>=1)	stop("gamma should be smaller than 1.")
 	if(gamma<=0)	stop("gamma should be larger than 0.")
@@ -9,7 +9,7 @@ numStarts<-function(q,gamma=0.99,eps=0.5){
 	ceiling(ns0/ord)*ord
 }
 FastHCS<-function(x,nSamp=NULL,alpha=0.5,q=10,seed=1){#x<-x0;nSamp<-100;alpha<-0.5;q=10;seed=NULL
-	q0<-q1<-25;J<-5;qo<-q
+	q0<-q1<-25;J<-5;
 	m1<-"seed should be an integer in [0,2**31]."
 	if(!is.null(seed)){
 		if(!is.finite(seed))		stop(m1)
@@ -25,18 +25,27 @@ FastHCS<-function(x,nSamp=NULL,alpha=0.5,q=10,seed=1){#x<-x0;nSamp<-100;alpha<-0
 	if(sum(na.x)!=nrow(x))		stop("Your data contains NA.")
 	n<-nrow(x)
 	p<-ncol(x)
+	if(!is.numeric(q))	stop("q should satisfy q>0.")
+	if(q<2)			stop("Univariate FastHCS is not implemented.")
+	if(p<4)			stop("For small values of p use FastPCS.")
+	qf<-q
+	if(q==2){
+				qf<-2
+				q<-3
+	}
 	if(q>=p)		stop("q should satisfy q<p.")
-	if(p<2|q<2)		stop("Univariate FastHCS is not implemented.")
-	if(q>25)		stop("FastHCS only works for dimensions q<=25.")
-	if(is.null(nSamp)) 	nSamp<-numStarts(q,eps=(1-alpha)) 
-	h<-quanf(n=n,p=q,alpha=0.5)
+	if(q>=floor(n/2))	stop("q should satisfy q<[n/2].")
+	if(q>25)		stop("FastHCS only works for q<=25.")
+	if(is.null(nSamp)) 	nSamp<-FHCSnumStarts(q,eps=(1-alpha)) 
+	h0<-quanf(n=n,p=q,alpha=0.5)
+	h1<-min(n-1,quanf(n=n,p=q,alpha=alpha))
 	Dp<-rep(1.00,n);
 	q0<-max(q0,q);
 	q1<-max(q1,q);
 	objfunC<-1e3;
 	icandid<-1:n-1
 	ni<-length(icandid)
-	rraw<-rep(0,h)
+	rraw<-rep(0,h0)
 	rrew<-rep(0,n)
 	sd.d<-od.d<-rep(0,n)
 	co<-rep(0,2);
@@ -59,27 +68,30 @@ FastHCS<-function(x,nSamp=NULL,alpha=0.5,q=10,seed=1){#x<-x0;nSamp<-100;alpha<-0
 		as.single(od.d),	#16
 		as.single(sd.d),	#17
 		as.single(co),		#18
-		as.integer(h),		#19
+		as.integer(h0),		#19
 		as.single(sd.d),	#20
+		as.integer(h1),		#21
 	PACKAGE="FastHCS")
-	eStep<-compPcaParams(x=x,best=fitd[[14]][1:(fitd[[15]])],q=fitd[[6]]);#efficiency Step
-	A1<-list(rawBest = fitd[[13]],obj=as.numeric(fitd[[9]]), rawDist=fitd[[20]], best=fitd[[14]][1:(fitd[[15]])],loadings=eStep$loadings,eigenvalues=eStep$eigenvalues,center=eStep$center,od=fitd[[16]],sd=fitd[[17]],cutoff.od=fitd[[18]][1],cutoff.sd=fitd[[18]][2])
+	eStep<-compPcaParams(x=x,best=fitd[[14]][1:(fitd[[15]])],q=min(qf,fitd[[6]]));
+	A1<-list(rawBest=fitd[[13]],obj=as.numeric(fitd[[9]]),rawDist=fitd[[20]],best=fitd[[14]][1:(fitd[[15]])],loadings=eStep$loadings,eigenvalues=eStep$eigenvalues,center=eStep$center,od=fitd[[16]],sd=fitd[[17]],cutoff.od=fitd[[18]][1],cutoff.sd=fitd[[18]][2],scores=eStep$scores)
 	class(A1)<-"FastHCS"
 	return(A1)
 }
 quanf<-function(n,p,alpha)	return(floor(2*floor((n+p+1)/2)-n+2*(n-floor((n+p+1)/2))*alpha))
 signFlip<-function(loadings) 	apply(loadings,2,function(x) if (x[which.max(abs(x))]<0) -x else x)
 compPcaParams<-function(x,best,q){
-	h<-length(best)
 	n<-nrow(x)
+	h<-length(best)
 	center<-colMeans(x[best,])
 	centeredx<-sweep(x,2,center,FUN="-")
 	eSVD<-svd(centeredx[best,]/sqrt(h-1),nu=0); # efficiency step SVD
 	if(eSVD$d[q]<1e-6) q<-sum(eSVD$d>1e-6)-1
 	eval<-as.vector(eSVD$d)
 	loadings<-eSVD$v[,1:q,drop=FALSE];
+	scores<-centeredx%*%loadings
 	eigenvalues<-eval**2
-	list(center=center,loadings=loadings,eigenvalues=eigenvalues)
+	#eigenvalues<-apply(scores,2,Qn)**2
+	list(center=center,loadings=loadings,eigenvalues=eigenvalues,scores=scores)
 }
 plot.FastHCS<-function(x,col="black",pch=16,...){
 	SDIND<-x$sd

@@ -24,7 +24,7 @@ data(DnaAlteration)
 alpha<-0.5
 Q<-15
 p<-ncol(DnaAlteration[,-1])
-ns<-numStarts(q=Q,eps=(1-alpha)*4/5)
+ns<-FHCSnumStarts(q=Q,eps=(1-alpha)*4/5)
 RunExample<-FALSE
 if(RunExample){
 	Fit<-FastHCS(x=DnaAlteration[,-1],q=Q,nsamp=ns,seed=0)

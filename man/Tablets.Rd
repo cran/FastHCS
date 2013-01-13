@@ -26,7 +26,7 @@ data(Tablets)
 alpha<-0.5
 Q<-15
 p<-ncol(Tablets[,-1])
-ns<-numStarts(q=Q,eps=(1-alpha)*4/5)
+ns<-FHCSnumStarts(q=Q,eps=(1-alpha)*4/5)
 RunExample<-FALSE
 if(RunExample){
 	Fit<-FastHCS(x=Tablets[,-1],q=Q,nSamp=ns,seed=1,alpha=0.5)
