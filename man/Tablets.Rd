@@ -25,19 +25,15 @@ Transmittance and NIR FT Raman Spectra Applied Spectroscopy 56(5): 579--585.
 data(Tablets)
 alpha<-0.5
 Q<-15
-x0<-Tablets[,-1]
-p<-ncol(x0)
-ns<-NumStarts(k=Q,eps=(1-alpha)*4/5)
+p<-ncol(Tablets[,-1])
+ns<-numStarts(q=Q,eps=(1-alpha)*4/5)
 RunExample<-FALSE
 if(RunExample){
-	Fit<-FastHCS(x=x0,k=Q,nsamp=ns,seed=1)
+	Fit<-FastHCS(x=Tablets[,-1],q=Q,nSamp=ns,seed=1,alpha=0.5)
 	colvec<-rep("orange",nrow(Tablets))
 	colvec[Tablets[,1]==1]<-"blue"
-	SDIND<-Fit$rew.fit$sd/Fit$rew.fit$cutoff.sd
-	ODIND<-Fit$rew.fit$od/Fit$rew.fit$cutoff.od
-	plot(SDIND,ODIND,col=colvec,pch=16)
-	abline(h=1,col="red",lty=2)
-	abline(v=1,col="red",lty=2)
+	plot(Fit,col=colvec,pch=16)
 }
+
 }
 \keyword{datasets}

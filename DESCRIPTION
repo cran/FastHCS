@@ -1,19 +1,19 @@
 Package: FastHCS
 Type: Package
-Title: R package to compute the FastHCS outlyingness index.
-Version: 0.0.2
+Title: FastHCS Robust Algortihm for Principal Component Analysis
+Version: 0.0.3
 Date: 2013-01-13
-Depends: matrixStats
+Depends: R (>= 3.1.1), matrixStats
 Suggests: mvtnorm
 LinkingTo: Rcpp, RcppEigen
-Description: The FastHCS outlyingness index is a method for finding outliers in high dimensional data-sets. 
+SystemRequirements: C++11
+Description: The FastHCS algorithm of Schmitt and Vakili (2014) for high-dimensional, robust PCA modelling and associated outlier detection and diagnostic tools.
 License: GPL (>= 2)
 LazyLoad: yes
-Authors@R: person("Kaveh", "Vakili", email =
-        "kaveh.vakili@wis.kuleuven.be", role = c("aut", "cre"))
+Authors@R: person("Kaveh", "Vakili", email =  "vakili.kaveh.email@gmail.com", role = c("aut", "cre"))
 Author: Kaveh Vakili [aut, cre]
-Maintainer: Kaveh Vakili <kaveh.vakili@wis.kuleuven.be>
-Packaged: 2014-07-12 11:36:34 UTC; kaveh
+Maintainer: Kaveh Vakili <vakili.kaveh.email@gmail.com>
 NeedsCompilation: yes
+Packaged: 2014-11-13 23:22:58 UTC; kaveh
 Repository: CRAN
-Date/Publication: 2014-07-12 14:57:54
+Date/Publication: 2014-11-14 00:27:19

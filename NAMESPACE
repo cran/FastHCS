@@ -1,7 +1,7 @@
 useDynLib(FastHCS)
 import("matrixStats")
-export("NumStarts")
-export("computdis")
-export("Signflip")
+export("numStarts")
+export("signFlip")
 export("FastHCS")
-
+export("plot.FastHCS")
+export("compPcaParams")
