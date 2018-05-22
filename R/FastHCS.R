@@ -48,7 +48,7 @@ FastHCS<-function(x,nSamp=NULL,alpha=0.5,q=10,seed=1){#x<-x0;nSamp<-100;alpha<-0
 				q<-3
 	}
 	if(q>=p)		stop("q should satisfy q<p.")
-	if(q>=n)		stop("q should satisfy q<n.")
+	if(q>=floor(n/2))	stop("q should satisfy q<[n/2].")
 	if(q>25)		stop("FastHCS only works for q<=25.")
 	if(is.null(nSamp)) 	nSamp<-FHCSnumStarts(q,eps=(1-alpha)) 
 	h0<-quanf(n=n,p=q,alpha=0.5)
@@ -86,41 +86,20 @@ FastHCS<-function(x,nSamp=NULL,alpha=0.5,q=10,seed=1){#x<-x0;nSamp<-100;alpha<-0
 	A1<-list(rawBest=fitd[[13]],obj=as.numeric(fitd[[9]]),rawDist=fitd[[15]],best=eStep$best,
 	loadings=eStep$loadings,eigenvalues=eStep$eigenvalues,center=eStep$center,od=eStep$od,
 	sd=eStep$sd,cutoff.od=eStep$cutoff.od,cutoff.sd=eStep$cutoff.sd,scores=eStep$scores,
-	qstar=fitd[[17]],flag=eStep$flag,best_alt=eStep$alt,z0=z0)
+	qstar=fitd[[17]])
 	class(A1)<-"FastHCS"
 	return(A1)
 }
 compPcaParams<-function(x,fitd,q=NULL,z0=NULL,seed=1){
 	n<-nrow(x);p<-ncol(x)
 	best1<-which(fitd[[15]]<quantile(fitd[[15]],fitd[[16]]/n));
-	est0<-FHCSpsdo(z0=z0,h=length(best1),q=q,seed=seed);
-	est0$scores<-sweep(x,2,est0$center)%*%est0$loadings
 	est1<-FHCSkernelEVD(x=x,best=best1,q=q)							
-	cand<-intersect(est1$best,est0$best)
-	kand<-setdiff(est0$best,cand)
-	cond0<-mean(log(colMeans(est1$scores[est1$best,]**2)/colVars(est1$scores[cand,])))
-	cond1<-max(log(colMeans(est0$scores[cand,]**2)/colVars(est0$scores[kand,])))
-	cond<-cond0<cond1
-	if(max(colVars(est0$scores[kand,]))<1e-6)	cond<-FALSE
-	if(cond){
-		flag<-0
-		best<-est1$best
-		center<-est1$center
-		scores<-est1$scores
-		loadings<-est1$loadings
-		eigenvalues<-est1$eigenvalues
-		rank<-est1$rank
-		alt<-est0$best
-	} else {
-		flag<-1
-		best<-est0$best
-		scores<-est0$scores
-		center<-est0$center
-		loadings<-est0$loadings
-		eigenvalues<-est0$eigenvalues
-		rank<-est0$rank
-		alt<-est1$best
-	}
+	best<-est1$best
+	center<-est1$center
+	scores<-est1$scores
+	loadings<-est1$loadings
+	eigenvalues<-est1$eigenvalues
+	rank<-est1$rank
 	dod<-sweep(x,2,center,FUN='-')-scores%*%t(loadings);
 	dod<-rowSums(dod*dod)
 	dsd<-sweep(scores,2,sqrt(eigenvalues),FUN="/")
@@ -130,8 +109,8 @@ compPcaParams<-function(x,fitd,q=NULL,z0=NULL,seed=1){
 	dsd<-dsd/sqrt(cof)
 	cod<-sqrt(qnorm(0.975,mean(dod[best]^(2/3)),sd(dod[best]^(2/3))/sqrt(qchisq(length(best)/n,1)))^3)
 	csd<-sqrt(qchisq(0.975,rank))
-	list(center=center,loadings=loadings,eigenvalues=eigenvalues,flag=flag,
-	scores=scores,cutoff.sd=csd,cutoff.od=cod,od=dod,sd=dsd,best=best,alt=alt)
+	list(center=center,loadings=loadings,eigenvalues=eigenvalues,
+	scores=scores,cutoff.sd=csd,cutoff.od=cod,od=dod,sd=dsd,best=best)
 }
 quanf<-function(n,p,alpha)	return(floor(2*floor((n+p+1)/2)-n+2*(n-floor((n+p+1)/2))*alpha))
 plot.FastHCS<-function(x,col="black",pch=16,...){
@@ -160,7 +139,7 @@ FHCSkernelEVD<-function(x,best=NULL,q=NULL){#lightly modified from rrcov:
 	return(A1)
 }#from rrcov:
 signFlip<-function(loadings)	apply(loadings,2,function(x) if(x[which.max(abs(x))]<0) -x else x)
-FHCSpsdo<-function(z0=NULL,h=NULL,seed=1,q=NULL,ndir=1000){
+FHCSpsdo<-function(z0,h=NULL,seed=1,q=NULL,ndir=1000){
 	if(is(z0,'matrix')){
 		z0<-FHCSkernelEVD(z0,q=ncol(z0))
 	} else {

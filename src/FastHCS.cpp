@@ -120,6 +120,15 @@ float Main(MatrixXf& x,const int& k0,const int& J,const int& k1,const int& K,Vec
 		for(int i=0;i<k0;i++) dP+=OneProj(w,wSub,hl(j),RIndex,h_m);	//const w!
 		GetSmallest(dP,hl(j+1),w,wSub,RIndex);				//const w!
 	}
+
+	for(int i=0;i<h_m;i++) xSub.row(i)=x.row(RIndex(i));	
+	xSub_mean=xSub.colwise().mean();	
+	x.rowwise()-=xSub_mean;					
+	xSub.rowwise()-=xSub_mean;
+	JacobiSVD<MatrixXf> svd1(xSub,ComputeThinV);
+	w=(x*svd1.matrixV().topLeftCorner(p,K));
+	for(int i=0;i<h_m;i++) wSub.row(i)=w.row(RIndex(i));
+
 	VectorXf fin(k1);
 	for(int i=0;i<k1;i++) fin(i)=SubsetRankFun(w,wSub,hl(J),RIndex);	//const w!
 	return fin.array().log().mean();
