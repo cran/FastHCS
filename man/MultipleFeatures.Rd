@@ -6,7 +6,7 @@
  dataset corresponding to the sample of '0' and '1' numerals. 
 }
 \usage{
-MultipleFeatures
+data(MultipleFeatures)
 }
 \format{
   \describe{

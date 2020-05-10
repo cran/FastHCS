@@ -1,4 +1,5 @@
 \name{FastHCS-package}
+\alias{FastPCS-package}
 \docType{package}
 \title{Package implementing the FastHCS robust PCA algorithm.}
 \description{

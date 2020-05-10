@@ -13,7 +13,7 @@
           \code{"alpha"} with probability 0.99.}
  \item{alpha}{Numeric parameter controlling the size of the active subsets i.e., \code{"h=quanf(alpha,n,q)"}. Allowed
           values are between 0.5 and 1 and the default is 0.5.}
-\item{q}{Number of principal components to compute. Note that p>q>1, 1<q<n/2. Default is q=10.}
+\item{q}{Number of principal components to compute. Note that p>q>1, 1<q<n. Default is q=10.}
 \item{seed}{Starting value for random generator. Default is seed = 1.}
 }
 \value{
@@ -92,7 +92,7 @@ r1<-FastHCS(x=x1,nSamp=nStart,q=Q,seed=0)
 max(abs(log(r1$eigenvalues[1:Q]/r0$eigenvalues[1:Q])))
 }
 \references{
-	 Schmitt E. and Vakili K. and (2014).
+	 Schmitt E. and Vakili K. and (2015).
 	 Robust PCA with FastHCS.
 	(http://arxiv.org/abs/1402.3514)
 }

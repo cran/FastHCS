@@ -24,8 +24,16 @@ using namespace Eigen;
 using Eigen::VectorXf;
 std::mt19937 mt2;
 
-extern VectorXi SampleR(const int m,const int p);
-void unimcd(const VectorXf& m_resd,const int& h,VectorXf& m_medn,const int rw=1){
+extern VectorXi SampleR(
+			const int& m,
+			const int& p
+			);
+void unimcd(
+		const VectorXf& m_resd,
+		const int& h,
+		VectorXf& m_medn,
+		const int& rw=1
+	){
 	const int n1=m_resd.size(),len=n1-h+1;
 	float initmean=0.0,initcov=0.0,sumw=0.0;
 	int minone;
@@ -60,7 +68,10 @@ void unimcd(const VectorXf& m_resd,const int& h,VectorXf& m_medn,const int rw=1)
 	}
 	m_medn<<initmean,sqrt(initcov);
 }
-float quantiles(VectorXf& x,const float quant){
+float quantiles(
+			VectorXf& x,
+			const float& quant
+		){
 	const int n=x.size();
 	float lq,uq,fq;
 	const float q1=n*(float)quant+0.5;
@@ -77,7 +88,11 @@ float quantiles(VectorXf& x,const float quant){
 	}
 	return(fq);
 }
-void mad(const VectorXf& m_resd,const int h,VectorXf& m_medn){
+void mad(
+		const VectorXf& m_resd,
+		const int& h,
+		VectorXf& m_medn
+	){
 	const int n=m_resd.size();
 	float temp0=0.5,hf=h/(float)n;
 	VectorXf i_resd=m_resd;
@@ -86,7 +101,11 @@ void mad(const VectorXf& m_resd,const int h,VectorXf& m_medn){
 	i_resd=i_resd.array().abs();
 	m_medn<<temp1,quantiles(i_resd,temp0);
 }
-void psdo_dir(const MatrixXf& x,int& m_r,VectorXf& m_coef){
+void psdo_dir(
+			const MatrixXf& x,
+			int& m_r,
+			VectorXf& m_coef
+		){
 	const int n=x.rows();
 	VectorXi QIndexpin(2);
 	QIndexpin=SampleR(n,2);
@@ -97,7 +116,13 @@ void psdo_dir(const MatrixXf& x,int& m_r,VectorXf& m_coef){
 		m_r=1;
 	}
 }
-void main_psdo(const MatrixXf& x,int& ndir,int& sdr,VectorXf& outlyingness,const int& h){
+void main_psdo(
+			const MatrixXf& x,
+			int& ndir,
+			int& sdr,
+			VectorXf& outlyingness,
+			const int& h
+		){
 	const int p=x.cols(),n=x.rows();
 	int m_r=0,j=0;
 	VectorXf m_medn(2);
@@ -126,7 +151,8 @@ void main_psdo(const MatrixXf& x,int& ndir,int& sdr,VectorXf& outlyingness,const
 	}
 }
 extern "C"{
-	void r_psdo(int* n,		//1
+	void r_psdo(
+			int* n,		//1
 			int* p,		//2
 			int* ndir,	//3
 			float* xi,	//4

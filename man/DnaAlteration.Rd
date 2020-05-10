@@ -6,7 +6,7 @@
  data set corresponding to the sample of 'blood' and 'non-blood, non placenta' tissues. 
 }
 \usage{
-DnaAlteration
+data(DnaAlteration)
 }
 \format{
   \describe{

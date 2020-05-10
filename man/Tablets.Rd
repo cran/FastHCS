@@ -8,7 +8,7 @@ production settings are included in the study. In this subset, we combine all 80
 samples of 80mg tablets with the first 50 samples of 250mg tablets. 
 }
 \usage{
-Tablets
+data(Tablets)
 }
 \format{
   \describe{

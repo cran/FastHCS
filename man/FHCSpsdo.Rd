@@ -2,14 +2,14 @@
 \alias{FHCSpsdo}
 \title{Computes the univariate MCD estimator of scatter}
 \usage{
-  FHCSpsdo(z0,h=NULL,seed=1,q=NULL, ndir = 1000)
+  FHCSpsdo(z0,h=NULL,seed=1,q=NULL,ndir=1000)
 }
 \arguments{
   \item{z0}{Either a data matrix or the result of a call to \code{FHCSkernelEVD}.}
 	\item{h}{Number of observation used to compute the univairate outlyingness. Defaults to \code{[(n+q+1)/2]+1}.}
  	\item{seed}{Seed used to initialize the RNG. Defaults to 1.}
 	 \item{q}{Number of components. Defaults to \code{ncol(z0)}.}
-	 \item{ndir}{Number of 'componentsprojections. Defaults to \code{1000}.}
+	 \item{ndir}{Number of projection used to compute the PP outlyngness.}
 }
 \value{
    A  list with components:
